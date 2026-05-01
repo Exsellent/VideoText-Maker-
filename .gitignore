@@ -1,0 +1,55 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+*.log
+
+# --- Virtual environment ---
+.venv/
+env/
+venv/
+
+# --- IDE / Editors ---
+.idea/
+.vscode/
+*.iml
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Temporary files ---
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# --- Flask / uploads / temp audio ---
+*.mp3
+*.wav
+*.ogg
+*.webm
+*.m4a
+*.aac
+*.flac
+*.opus
+*.zip
+*.epub
+*.fb2
+*.pdf
+
+# --- Build / cache ---
+.cache/
+dist/
+build/
+tmp/
+temp/
+
+# --- Render / deployment ---
+*.sqlite3
+instance/
