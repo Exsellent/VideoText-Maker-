@@ -1,17 +1,18 @@
 # 🎬 VideoText Maker — Ultra‑Lightweight Text‑to‑Video Engine
 
-[``]()  
-[``]()  
-[``]()  
-[``]()
+![CI](https://img.shields.io/badge/CI-passing-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Stars](https://img.shields.io/github/stars/Exsellent/VideoText-Maker?style=social)
 
-**Tech stack badges:**
+**Tech stack badges**
 
-`https://img.shields.io/badge/Flask-latest-black`  
-`https://img.shields.io/badge/edge--tts-latest-blueviolet`  
-`https://img.shields.io/badge/Pillow-latest-orange`  
-`https://img.shields.io/badge/imageio--ffmpeg-latest-red`  
-`https://img.shields.io/badge/gunicorn-latest-green`
+![Flask](https://img.shields.io/badge/Flask-latest-black)
+![edge-tts](https://img.shields.io/badge/edge--tts-latest-blueviolet)
+![Pillow](https://img.shields.io/badge/Pillow-latest-orange)
+![imageio-ffmpeg](https://img.shields.io/badge/imageio--ffmpeg-latest-red)
+![gunicorn](https://img.shields.io/badge/gunicorn-latest-green)
+
 
 ---
 
