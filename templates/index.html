@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VideoText Maker</title>
+<style>
+/* ── Variables ── */
+:root {
+  --bg:        #0f0f1a;
+  --bg-panel:  #1a1a2e;
+  --bg-card:   #16213e;
+  --bg-input:  #0d1020;
+  --text:      #dde0f0;
+  --muted:     #7878a0;
+  --accent:    #4ecca3;
+  --accent2:   #e05fa0;
+  --border:    #252545;
+  --btn-bg:    #252545;
+  --btn-hover: #303060;
+  --radius:    10px;
+  --trans:     .2s ease;
+  --font:      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --shadow:    0 4px 24px rgba(0,0,0,.5);
+}
+[data-theme="light"] {
+  --bg:        #f0efe8;
+  --bg-panel:  #ffffff;
+  --bg-card:   #f8f7f2;
+  --bg-input:  #fff;
+  --text:      #1a1a2e;
+  --muted:     #666688;
+  --accent:    #1e9e80;
+  --border:    #dddde8;
+  --btn-bg:    #e8e8f0;
+  --btn-hover: #d5d5e5;
+  --shadow:    0 4px 24px rgba(0,0,0,.12);
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: var(--font); background: var(--bg); color: var(--text); }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── App shell ── */
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+/* ── Header ── */
+header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 22px; height: 52px; flex-shrink: 0;
+  background: var(--bg-panel); border-bottom: 1px solid var(--border);
+}
+.logo { font-size: 1.1rem; font-weight: 800; color: var(--accent); letter-spacing: -.4px; white-space: nowrap; }
+.logo span { color: var(--muted); font-weight: 400; }
+.hdr-gap { flex: 1; }
+.hdr-btn {
+  width: 34px; height: 34px; border-radius: 8px; background: var(--btn-bg);
+  color: var(--text); font-size: 1rem; display: grid; place-items: center;
+  transition: background var(--trans);
+}
+.hdr-btn:hover { background: var(--btn-hover); }
+
+/* ── Main split ── */
+#main { display: flex; flex: 1; overflow: hidden; }
+
+/* ── Left pane ── */
+#leftPane {
+  display: flex; flex-direction: column;
+  width: 58%; border-right: 1px solid var(--border);
+}
+.pane-header {
+  padding: 14px 20px 10px; font-size: .72rem; font-weight: 700;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+  display: flex; align-items: center; gap: 10px;
+}
+.pane-header span { flex: 1; }
+
+#phraseArea {
+  flex: 1; resize: none; padding: 16px 20px;
+  background: var(--bg-input); color: var(--text);
+  border: none; outline: none; font-size: 1.02rem;
+  line-height: 2; font-family: 'Georgia', serif;
+  border-top: 1px solid var(--border);
+}
+#phraseArea::placeholder { color: var(--muted); font-family: var(--font); font-size: .92rem; line-height: 1.6; }
+
+.stats-bar {
+  padding: 8px 20px; font-size: .79rem; color: var(--muted);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+}
+.phrase-count { color: var(--accent); font-weight: 600; }
+
+/* ── Right pane (settings) ── */
+#rightPane {
+  width: 42%; overflow-y: auto; padding: 18px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.setting-group {
+  background: var(--bg-panel); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.group-title {
+  font-size: .7rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .09em;
+  margin-bottom: 14px;
+}
+.setting-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.setting-row:last-child { margin-bottom: 0; }
+.setting-row label { font-size: .84rem; color: var(--muted); flex: 1; white-space: nowrap; }
+.setting-row .val { font-size: .8rem; color: var(--accent); min-width: 38px; text-align: right; }
+
+input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; height: 4px; background: var(--border);
+  border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+}
+select {
+  width: 100%; padding: 8px 10px; border-radius: 7px;
+  background: var(--bg-input); border: 1px solid var(--border);
+  color: var(--text); font-size: .87rem; outline: none; cursor: pointer;
+}
+select:focus { border-color: var(--accent); }
+
+/* Color row */
+.color-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.color-row label { font-size: .84rem; color: var(--muted); flex: 1; }
+.color-row input[type=color] {
+  width: 36px; height: 28px; border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; background: none; padding: 2px;
+}
+.color-swatch-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.swatch {
+  width: 24px; height: 24px; border-radius: 5px; cursor: pointer;
+  border: 2px solid transparent; transition: border-color var(--trans), transform .1s;
+}
+.swatch:hover, .swatch.sel { border-color: var(--accent); transform: scale(1.1); }
+
+/* Resolution buttons */
+.res-row { display: flex; gap: 6px; }
+.res-btn {
+  flex: 1; padding: 7px 4px; border-radius: 6px; font-size: .8rem;
+  background: var(--btn-bg); color: var(--muted); font-weight: 600;
+  transition: background var(--trans), color var(--trans);
+}
+.res-btn:hover { background: var(--btn-hover); color: var(--text); }
+.res-btn.sel { background: var(--accent); color: #0f0f1a; }
+
+/* Bullet selector */
+.bullet-row { display: flex; gap: 6px; margin-top: 8px; }
+.bullet-opt {
+  flex: 1; padding: 6px; border-radius: 6px;
+  background: var(--btn-bg); color: var(--muted);
+  font-size: 1.1rem; text-align: center; cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color var(--trans), color var(--trans);
+}
+.bullet-opt.sel { border-color: var(--accent); color: var(--text); }
+
+/* Background upload */
+.upload-zone {
+  border: 2px dashed var(--border); border-radius: 8px;
+  padding: 16px; text-align: center; cursor: pointer;
+  position: relative; transition: border-color var(--trans), background var(--trans);
+  font-size: .85rem; color: var(--muted);
+}
+.upload-zone:hover, .upload-zone.over { border-color: var(--accent); background: rgba(78,204,163,.05); }
+.upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.upload-chosen { font-size: .82rem; color: var(--accent); margin-top: 6px; display: none; }
+.upload-chosen.show { display: block; }
+
+/* Voices loading */
+#voicesLoading { font-size: .82rem; color: var(--muted); text-align: center; padding: 6px; animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+/* ── Generate bar ── */
+#generateBar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg-panel); border-top: 1px solid var(--border);
+  padding: 12px 22px; display: flex; align-items: center; gap: 16px;
+  z-index: 100;
+}
+#generateBtn {
+  padding: 11px 32px; border-radius: 8px;
+  background: var(--accent); color: #0f0f1a;
+  font-size: .95rem; font-weight: 800;
+  transition: opacity var(--trans), transform var(--trans);
+  white-space: nowrap; flex-shrink: 0;
+}
+#generateBtn:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
+#generateBtn:disabled { opacity: .4; cursor: default; }
+
+.progress-wrap {
+  flex: 1; display: flex; flex-direction: column; gap: 5px;
+}
+.progress-track {
+  height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 3px; transition: width .4s ease;
+  width: 0%;
+}
+#progressStep { font-size: .79rem; color: var(--muted); }
+
+#downloadBtn {
+  padding: 11px 26px; border-radius: 8px;
+  background: #1a6e5a; color: #fff; font-size: .92rem; font-weight: 700;
+  display: none; white-space: nowrap; flex-shrink: 0;
+  transition: background var(--trans);
+}
+#downloadBtn:hover { background: #22897a; }
+#downloadBtn.show { display: block; }
+
+#errorBox {
+  display: none; flex: 1; font-size: .82rem; color: #e05fa0;
+  background: rgba(224,95,160,.08); border: 1px solid rgba(224,95,160,.3);
+  border-radius: 7px; padding: 8px 12px; overflow-y: auto; max-height: 60px;
+}
+#errorBox.show { display: block; }
+
+/* ── Pimsleur preview ── */
+#previewBox {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+#previewBox .prev-title { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing:.08em; }
+#previewCanvas {
+  width: 100%; aspect-ratio: 16/9; border-radius: 7px;
+  display: block; border: 1px solid var(--border);
+}
+
+/* pad bottom for fixed bar */
+#rightPane { padding-bottom: 76px; }
+#leftPane  { padding-bottom: 76px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="logo">🎬 Video<span>Text</span> Maker</div>
+    <div class="hdr-gap"></div>
+    <button class="hdr-btn" id="themeBtn" title="Toggle theme">🌙</button>
+  </header>
+
+  <!-- ── Main ── -->
+  <div id="main">
+
+    <!-- ── Left: phrases ── -->
+    <div id="leftPane">
+      <div class="pane-header">
+        <span>Phrases / Lines</span>
+        <span style="font-size:.78rem;color:var(--muted)">one phrase per line</span>
+      </div>
+      <textarea id="phraseArea" placeholder="Type or paste your phrases here — one per line.
+
+Example (Pimsleur-style):
+What would you like to drink?
+Would you like to have something to drink?
+When would you like to have something to drink?
+
+Each line becomes a separate video segment with its own voiceover.
+The text appears large on screen while the voice reads it aloud."></textarea>
+      <div class="stats-bar">
+        <span><span class="phrase-count" id="phraseCount">0</span> phrases</span>
+        <span id="estDur" style="color:var(--muted)">Estimated duration: —</span>
+        <span id="warnLong" style="color:#e05fa0;display:none">⚠️ Very long phrase — will wrap</span>
+      </div>
+    </div>
+
+    <!-- ── Right: settings + preview ── -->
+    <div id="rightPane">
+
+      <!-- VOICE -->
+      <div class="setting-group">
+        <div class="group-title">🔊 Voice (Edge TTS)</div>
+        <div id="voicesLoading">Loading voices…</div>
+        <select id="voiceSelect" style="display:none"></select>
+        <div class="setting-row" style="margin-top:12px">
+          <label>Speed</label>
+          <input type="range" id="rateRange" min="-30" max="60" value="0" step="5">
+          <span class="val" id="rateVal">0%</span>
+        </div>
+        <div class="setting-row">
+          <label>Pitch</label>
+          <input type="range" id="pitchRange" min="-10" max="10" value="0" step="1">
+          <span class="val" id="pitchVal">0 Hz</span>
+        </div>
+      </div>
+
+      <!-- RESOLUTION -->
+      <div class="setting-group">
+        <div class="group-title">📐 Resolution</div>
+        <div class="res-row">
+          <button class="res-btn" data-w="854"  data-h="480">480p</button>
+          <button class="res-btn sel" data-w="1280" data-h="720">720p</button>
+          <button class="res-btn" data-w="1920" data-h="1080">1080p</button>
+        </div>
+      </div>
+
+      <!-- COLORS -->
+      <div class="setting-group">
+        <div class="group-title">🎨 Colors</div>
+
+        <div class="color-row">
+          <label>Background</label>
+          <input type="color" id="bgColorPicker" value="#f5f0e8">
+        </div>
+        <div class="color-swatch-row" id="bgSwatches">
+          <div class="swatch sel" data-color="#f5f0e8" style="background:#f5f0e8" title="Cream"></div>
+          <div class="swatch" data-color="#ffffff" style="background:#ffffff;border:1px solid #ccc" title="White"></div>
+          <div class="swatch" data-color="#1a1a2e" style="background:#1a1a2e" title="Dark Blue"></div>
+          <div class="swatch" data-color="#000000" style="background:#000000" title="Black"></div>
+          <div class="swatch" data-color="#0d1b2a" style="background:#0d1b2a" title="Navy"></div>
+          <div class="swatch" data-color="#1e3a1e" style="background:#1e3a1e" title="Forest"></div>
+          <div class="swatch" data-color="#2d1b4e" style="background:#2d1b4e" title="Purple"></div>
+          <div class="swatch" data-color="#4a0010" style="background:#4a0010" title="Burgundy"></div>
+        </div>
+
+        <div class="color-row" style="margin-top:14px">
+          <label>Text color</label>
+          <input type="color" id="textColorPicker" value="#191919">
+        </div>
+        <div class="color-swatch-row" id="textSwatches">
+          <div class="swatch sel" data-color="#191919" style="background:#191919" title="Near Black"></div>
+          <div class="swatch" data-color="#ffffff" style="background:#ffffff;border:1px solid #888" title="White"></div>
+          <div class="swatch" data-color="#4ecca3" style="background:#4ecca3" title="Teal"></div>
+          <div class="swatch" data-color="#ffd700" style="background:#ffd700" title="Gold"></div>
+          <div class="swatch" data-color="#ff6b6b" style="background:#ff6b6b" title="Red"></div>
+          <div class="swatch" data-color="#74b9ff" style="background:#74b9ff" title="Blue"></div>
+        </div>
+      </div>
+
+      <!-- TEXT STYLE -->
+      <div class="setting-group">
+        <div class="group-title">✏️ Text Style</div>
+        <div class="setting-row">
+          <label>Font size</label>
+          <input type="range" id="fontRange" min="36" max="120" value="68" step="4">
+          <span class="val" id="fontVal">68px</span>
+        </div>
+        <div class="setting-row">
+          <label>Stroke width</label>
+          <input type="range" id="strokeRange" min="0" max="5" value="2" step="1">
+          <span class="val" id="strokeVal">2</span>
+        </div>
+        <div class="setting-row">
+          <label>Pause between</label>
+          <input type="range" id="pauseRange" min="0" max="20" value="4" step="1">
+          <span class="val" id="pauseVal">0.4s</span>
+        </div>
+
+        <div style="font-size:.82rem;color:var(--muted);margin-top:10px;margin-bottom:6px">Bullet style</div>
+        <div class="bullet-row">
+          <div class="bullet-opt sel" data-b="•">•</div>
+          <div class="bullet-opt" data-b="▶">▶</div>
+          <div class="bullet-opt" data-b="→">→</div>
+          <div class="bullet-opt" data-b="★">★</div>
+          <div class="bullet-opt" data-b="◆">◆</div>
+          <div class="bullet-opt" data-b="">—</div>
+        </div>
+      </div>
+
+      <!-- BACKGROUND VIDEO/IMAGE -->
+      <div class="setting-group">
+        <div class="group-title">🎞️ Background (optional)</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">
+          Upload a background video or image. It will be looped behind the text.
+          Leave empty for solid color background.
+        </div>
+        <div class="upload-zone" id="bgUploadZone">
+          <input type="file" id="bgFileInput" accept=".mp4,.mov,.avi,.webm,.mkv,.jpg,.jpeg,.png">
+          🎬 Drop video/image here or click to browse
+        </div>
+        <div class="upload-chosen" id="bgChosen"></div>
+        <button id="bgClearBtn" style="font-size:.8rem;color:var(--muted);margin-top:6px;display:none">
+          ✕ Remove background
+        </button>
+      </div>
+
+      <!-- PREVIEW -->
+      <div id="previewBox">
+        <div class="prev-title">👁 Style Preview (first phrase)</div>
+        <canvas id="previewCanvas" width="640" height="360"></canvas>
+      </div>
+
+    </div><!-- rightPane -->
+  </div><!-- main -->
+
+  <!-- ── Generate bar ── -->
+  <div id="generateBar">
+    <button id="generateBtn">🎬 Generate Video</button>
+
+    <div class="progress-wrap" id="progressWrap" style="display:none">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div id="progressStep">Starting…</div>
+    </div>
+
+    <div id="errorBox"></div>
+
+    <button id="downloadBtn" class="show" style="display:none">⬇ Download MP4</button>
+  </div>
+
+</div><!-- app -->
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const cfg = {
+  width:  1280,
+  height: 720,
+  bgColor:   [245, 240, 232],
+  textColor: [25, 25, 25],
+  fontSize:  68,
+  stroke:    2,
+  pause:     0.4,
+  rate:      0,
+  pitch:     0,
+  bullet:    '•',
+  voice:     'en-US-AriaNeural',
+};
+
+let bgFile     = null;
+let jobId      = null;
+let pollTimer  = null;
+
+// ── DOM ────────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const phraseArea    = $('phraseArea');
+const phraseCount   = $('phraseCount');
+const estDur        = $('estDur');
+const warnLong      = $('warnLong');
+const voiceSelect   = $('voiceSelect');
+const rateRange     = $('rateRange');
+const pitchRange    = $('pitchRange');
+const fontRange     = $('fontRange');
+const strokeRange   = $('strokeRange');
+const pauseRange    = $('pauseRange');
+const rateVal       = $('rateVal');
+const pitchVal      = $('pitchVal');
+const fontVal       = $('fontVal');
+const strokeVal     = $('strokeVal');
+const pauseVal      = $('pauseVal');
+const bgColorPicker = $('bgColorPicker');
+const textColorPicker = $('textColorPicker');
+const generateBtn   = $('generateBtn');
+const progressWrap  = $('progressWrap');
+const progressFill  = $('progressFill');
+const progressStep  = $('progressStep');
+const downloadBtn   = $('downloadBtn');
+const errorBox      = $('errorBox');
+const canvas        = $('previewCanvas');
+const ctx           = canvas.getContext('2d');
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return [r, g, b];
+}
+function rgbToHex([r, g, b]) {
+  return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+function phrases() {
+  return phraseArea.value.split('\n').map(l => l.trim()).filter(Boolean);
+}
+
+// ── Stats update ────────────────────────────────────────────────────────────
+phraseArea.addEventListener('input', () => {
+  const ps = phrases();
+  phraseCount.textContent = ps.length;
+  const est = ps.length * 4; // rough ~4s per phrase
+  estDur.textContent = 'Estimated: ~' + (est >= 60
+    ? Math.floor(est/60) + 'm ' + (est%60) + 's'
+    : est + 's');
+  const hasLong = ps.some(p => p.length > 120);
+  warnLong.style.display = hasLong ? '' : 'none';
+  updatePreview();
+});
+
+// ── Voice loading ───────────────────────────────────────────────────────────
+async function loadVoices() {
+  try {
+    const r = await fetch('/api/voices');
+    const voices = await r.json();
+    const preferred = ['en-US','en-GB','en-AU','en-IE','en-IN','ru-RU','de-DE','fr-FR'];
+    const all = Object.keys(voices);
+    const ordered = [...preferred.filter(l => voices[l]), ...all.filter(l => !preferred.includes(l))];
+
+    voiceSelect.innerHTML = '';
+    for (const locale of ordered) {
+      const grp = document.createElement('optgroup');
+      grp.label = locale;
+      for (const v of voices[locale]) {
+        const opt = document.createElement('option');
+        opt.value = v.name;
+        const g = v.gender === 'Female' ? '♀' : '♂';
+        opt.textContent = `${g} ${v.display.replace('Microsoft ','').replace(' Online (Natural) - ',' · ')}`;
+        if (v.name === 'en-US-AriaNeural') opt.selected = true;
+        grp.appendChild(opt);
+      }
+      voiceSelect.appendChild(grp);
+    }
+    $('voicesLoading').style.display = 'none';
+    voiceSelect.style.display = 'block';
+  } catch(e) {
+    $('voicesLoading').textContent = 'Failed to load voices';
+  }
+}
+voiceSelect.addEventListener('change', () => { cfg.voice = voiceSelect.value; });
+
+// ── Sliders ─────────────────────────────────────────────────────────────────
+rateRange.addEventListener('input', () => {
+  const v = +rateRange.value; cfg.rate = v;
+  rateVal.textContent = (v >= 0 ? '+' : '') + v + '%';
+});
+pitchRange.addEventListener('input', () => {
+  const v = +pitchRange.value; cfg.pitch = v;
+  pitchVal.textContent = (v >= 0 ? '+' : '') + v + ' Hz';
+});
+fontRange.addEventListener('input', () => {
+  cfg.fontSize = +fontRange.value;
+  fontVal.textContent = cfg.fontSize + 'px';
+  updatePreview();
+});
+strokeRange.addEventListener('input', () => {
+  cfg.stroke = +strokeRange.value;
+  strokeVal.textContent = cfg.stroke;
+  updatePreview();
+});
+pauseRange.addEventListener('input', () => {
+  const v = +pauseRange.value;
+  cfg.pause = v / 10;
+  pauseVal.textContent = cfg.pause.toFixed(1) + 's';
+});
+
+// ── Resolution buttons ───────────────────────────────────────────────────────
+document.querySelectorAll('.res-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.res-btn').forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel');
+    cfg.width  = +btn.dataset.w;
+    cfg.height = +btn.dataset.h;
+  });
+});
+
+// ── Color swatches ────────────────────────────────────────────────────────────
+function initSwatches(containerId, picker, key) {
+  document.querySelectorAll(`#${containerId} .swatch`).forEach(sw => {
+    sw.addEventListener('click', () => {
+      document.querySelectorAll(`#${containerId} .swatch`).forEach(s => s.classList.remove('sel'));
+      sw.classList.add('sel');
+      picker.value = sw.dataset.color;
+      cfg[key] = hexToRgb(sw.dataset.color);
+      updatePreview();
+    });
+  });
+  picker.addEventListener('input', () => {
+    document.querySelectorAll(`#${containerId} .swatch`).forEach(s => s.classList.remove('sel'));
+    cfg[key] = hexToRgb(picker.value);
+    updatePreview();
+  });
+}
+initSwatches('bgSwatches',   bgColorPicker,   'bgColor');
+initSwatches('textSwatches', textColorPicker, 'textColor');
+
+// ── Bullet selector ───────────────────────────────────────────────────────────
+document.querySelectorAll('.bullet-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.bullet-opt').forEach(o => o.classList.remove('sel'));
+    opt.classList.add('sel');
+    cfg.bullet = opt.dataset.b;
+    updatePreview();
+  });
+});
+
+// ── Background upload ─────────────────────────────────────────────────────────
+$('bgFileInput').addEventListener('change', e => {
+  bgFile = e.target.files[0] || null;
+  $('bgChosen').textContent = bgFile ? '📎 ' + bgFile.name : '';
+  $('bgChosen').classList.toggle('show', !!bgFile);
+  $('bgClearBtn').style.display = bgFile ? '' : 'none';
+});
+const zone = $('bgUploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f) {
+    bgFile = f;
+    $('bgChosen').textContent = '📎 ' + f.name;
+    $('bgChosen').classList.add('show');
+    $('bgClearBtn').style.display = '';
+  }
+});
+$('bgClearBtn').addEventListener('click', () => {
+  bgFile = null;
+  $('bgFileInput').value = '';
+  $('bgChosen').textContent = '';
+  $('bgChosen').classList.remove('show');
+  $('bgClearBtn').style.display = 'none';
+});
+
+// ── Canvas preview ─────────────────────────────────────────────────────────────
+function updatePreview() {
+  const ps = phrases();
+  const text = ps[0] || 'Your phrase will appear here';
+  const W = 640, H = 360;
+  const scalePx = (cfg.fontSize / cfg.width) * W;
+
+  // background
+  const [br, bg2, bb] = cfg.bgColor;
+  ctx.fillStyle = `rgb(${br},${bg2},${bb})`;
+  ctx.fillRect(0, 0, W, H);
+
+  // text
+  const [tr, tg, tb] = cfg.textColor;
+  const fs = Math.max(12, Math.round(scalePx));
+  ctx.font = `bold ${fs}px system-ui, Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // word wrap
+  const maxW = W * 0.8;
+  const words = (cfg.bullet + '  ' + text).split(' ');
+  const lines2 = [];
+  let cur = '';
+  for (const w of words) {
+    const test = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && cur) {
+      lines2.push(cur); cur = '    ' + w;
+    } else cur = test;
+  }
+  if (cur) lines2.push(cur);
+
+  const lineH = fs * 1.5;
+  const totalH = lines2.length * lineH;
+  let y = (H - totalH) / 2 + lineH / 2;
+
+  for (const line of lines2) {
+    // stroke
+    if (cfg.stroke > 0) {
+      const bright = (tr + tg + tb) / 3;
+      ctx.fillStyle = bright > 128 ? '#000' : '#fff';
+      const sw = Math.max(1, Math.round(cfg.stroke * W / cfg.width));
+      for (let dx = -sw; dx <= sw; dx++) {
+        for (let dy = -sw; dy <= sw; dy++) {
+          if (dx || dy) ctx.fillText(line, W/2 + dx, y + dy);
+        }
+      }
+    }
+    ctx.fillStyle = `rgb(${tr},${tg},${tb})`;
+    ctx.fillText(line, W/2, y);
+    y += lineH;
+  }
+}
+
+// ── Generate ───────────────────────────────────────────────────────────────────
+generateBtn.addEventListener('click', async () => {
+  const ps = phrases();
+  if (!ps.length) { alert('Please enter at least one phrase.'); return; }
+
+  generateBtn.disabled = true;
+  downloadBtn.style.display = 'none';
+  downloadBtn.classList.remove('show');
+  errorBox.classList.remove('show');
+  progressWrap.style.display = 'flex';
+  progressFill.style.width = '0%';
+  progressStep.textContent = 'Sending to server…';
+  jobId = null;
+
+  try {
+    const formData = new FormData();
+    const data = {
+      phrases:  ps,
+      voice:    voiceSelect.value || 'en-US-AriaNeural',
+      settings: {
+        width:     cfg.width,
+        height:    cfg.height,
+        bg_color:  cfg.bgColor,
+        text_color: cfg.textColor,
+        font_size: cfg.fontSize,
+        stroke:    cfg.stroke,
+        pause:     cfg.pause,
+        rate:      cfg.rate,
+        pitch:     cfg.pitch,
+        bullet:    cfg.bullet,
+      }
+    };
+    formData.append('data', JSON.stringify(data));
+    if (bgFile) formData.append('bg_video', bgFile);
+
+    const r = await fetch('/api/generate', { method: 'POST', body: formData });
+    const res = await r.json();
+    if (res.error) throw new Error(res.error);
+
+    jobId = res.job_id;
+    pollTimer = setInterval(pollStatus, 1500);
+
+  } catch(e) {
+    showError(e.message);
+    generateBtn.disabled = false;
+  }
+});
+
+async function pollStatus() {
+  if (!jobId) return;
+  try {
+    const r = await fetch(`/api/status/${jobId}`);
+    const job = await r.json();
+
+    progressFill.style.width = job.progress + "%";
+
+    if (job.status === "queued" && job.queue > 1) {
+      progressStep.textContent = `u23f3 Queue position: ${job.queue} — waiting...`;
+    } else {
+      progressStep.textContent = job.step || "";
+    }
+
+    if (job.status === "done") {
+      clearInterval(pollTimer);
+      progressFill.style.width = "100%";
+      progressStep.textContent = "u2705 Video ready!";
+      generateBtn.disabled = false;
+      downloadBtn.style.display = "block";
+    } else if (job.status === "error") {
+      clearInterval(pollTimer);
+      showError(job.error || "Unknown error");
+      generateBtn.disabled = false;
+    }
+  } catch(e) { /* network hiccup, keep polling */ }
+}
+
+function showError(msg) {
+  progressWrap.style.display = 'none';
+  errorBox.textContent = '❌ ' + msg;
+  errorBox.classList.add('show');
+}
+
+// make download button actually download
+downloadBtn.addEventListener('click', () => {
+  if (!jobId) return;
+  const a = document.createElement('a');
+  a.href = `/api/download/${jobId}`;
+  a.download = 'videotext_output.mp4';
+  a.click();
+});
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+$('themeBtn').addEventListener('click', () => {
+  const d = document.documentElement;
+  const isDark = d.dataset.theme === 'dark';
+  d.dataset.theme = isDark ? 'light' : 'dark';
+  $('themeBtn').textContent = isDark ? '☀️' : '🌙';
+});
+
+// ── Init ───────────────────────────────────────────────────────────────────
+loadVoices();
+updatePreview();
+</script>
+</body>
+</html>
